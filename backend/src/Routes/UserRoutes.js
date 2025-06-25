@@ -1,16 +1,26 @@
-// File: routes/userRoutes.js
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const userController = require("../Controllers/UserController");
 
-// Standard CRUD routes
-router.get("/", userController.getAll);
-router.get("/:id", userController.getOne);
-router.post("/", userController.create);
-router.put("/:id", userController.update);
-router.delete("/:id", userController.delete);
+const {
+  createUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+} = require('../controllers/userController');
 
-// Custom routes
-router.post("/register", userController.register);
+// TODO: Tambahkan middleware autentikasi dan otorisasi jika perlu
+// const { protect, adminOnly } = require('../middleware/authMiddleware');
+
+// Route: Public (atau bisa pakai middleware jika ingin membatasi)
+router.post('/', createUser);
+
+// Route: Admin only (contoh dengan middleware)
+// router.get('/', protect, adminOnly, getAllUsers);
+router.get('/', getAllUsers);
+
+router.get('/:id', getUserById);
+router.put('/:id', updateUser);
+router.delete('/:id', deleteUser);
 
 module.exports = router;

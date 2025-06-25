@@ -1,60 +1,59 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const morgan = require("morgan");
-const path = require("path");
-const cors = require("cors");
+const express = require('express');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const morgan = require('morgan');
 
-// Load .env
+// Load environment variables
 dotenv.config();
 
-// Import routes
-const benihRoutes = require("../src/routes/BenihsRoutes");
-const bookingTransactionRoutes = require("../src/routes/BookingTransactionRoutes");
-const brandRoutes = require("../src/routes/Brands");
-const categoryRoutes = require("../src/routes/Categories");
-
-// Init express app
+// Create Express app
 const app = express();
 
-// Middlewares
-app.use(cors());
-app.use(morgan("dev"));
-app.use(express.json()); // for parsing application/json
-app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
-app.use("/uploads", express.static(path.join(__dirname, "public/uploads"))); // serve file uploads
+// Middleware
+app.use(express.json());               // Body parser
+app.use(cors());                       // Enable CORS
+app.use(morgan('dev'));                // Logging
 
-// MongoDB connection
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/padi-app";
-mongoose
-  .connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
-    process.exit(1);
-  });
-
-// Routes
-app.use("/api/v1/benihs", benihRoutes);
-app.use("/api/v1/booking-transactions", bookingTransactionRoutes);
-app.use("/api/v1/brands", brandRoutes);
-app.use("/api/v1/categories", categoryRoutes);
-
-// Default route
-app.get("/", (req, res) => {
-  res.send("API is running...");
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ MongoDB connected'))
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err.message);
+  process.exit(1); // Exit if DB not connected
 });
 
-// Error handling middleware
+const path = require('path');
+
+// Menyajikan folder uploads agar bisa diakses dari browser
+app.use('/uploads', express.static(path.join(__dirname, 'src/uploads')));
+
+// Import routes
+const authRoutes = require('./src/routes/authRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+const productRoutes = require('./src/routes/productRoutes');
+const brandRoutes = require('./src/routes/brandRoutes');
+const orderRoutes = require('./src/routes/orderRoutes');
+
+// Route mounting
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/brands', brandRoutes);
+app.use('/api/orders', orderRoutes);
+
+// Default route
+app.get('/', (req, res) => {
+  res.send('🛒 API is running...');
+});
+
+// Error handling (optional, custom)
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
+  console.error('❗ Server error:', err);
+  res.status(500).json({ message: 'Internal Server Error' });
 });
 
 // Start server
