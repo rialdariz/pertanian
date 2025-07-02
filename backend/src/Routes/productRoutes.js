@@ -7,23 +7,18 @@ const {
   getProductById,
   updateProduct,
   deleteProduct,
+  buyProduct, // ✅ import fungsi pembelian
 } = require('../controllers/productController');
-const upload = require('../middlewares/uploadMiddleware');
 
-// TODO: Tambahkan middleware autentikasi dan admin jika diperlukan
-// const { protect, adminOnly } = require('../middleware/authMiddleware');
+const upload = require('../middlewares/uploadMiddleware');
 
 // Public routes
 router.get('/', getAllProducts);
 router.get('/:id', getProductById);
 
-// Protected routes (aktifkan middleware jika sudah tersedia)
-// router.post('/', protect, adminOnly, createProduct);
-// router.put('/:id', protect, adminOnly, updateProduct);
-// router.delete('/:id', protect, adminOnly, deleteProduct);
-
 router.post('/', upload.uploadProductImage, createProduct);
 router.put('/:id', updateProduct);
 router.delete('/:id', deleteProduct);
+router.patch('/:id/buy', buyProduct); // ✅ route pembelian
 
 module.exports = router;

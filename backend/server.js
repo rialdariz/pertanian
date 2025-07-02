@@ -44,6 +44,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/beli', require('./src/routes/beliRoutes'));
 
 // Default route
 app.get('/', (req, res) => {

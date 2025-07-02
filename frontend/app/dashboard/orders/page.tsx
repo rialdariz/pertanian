@@ -1,72 +1,75 @@
 'use client'
-import { useEffect, useState } from "react"
 
-export default function OrderPage() {
-  const [orders, setOrders] = useState([])
+import { useEffect, useState } from 'react'
+
+type Purchase = {
+  _id: string;
+  product: {
+    _id: string;
+    name: string;
+    pricePerKg: number;
+  };
+  qty: number;
+  totalPrice: number;
+  purchasedAt: string;
+};
+
+export default function PurchaseHistoryPage() {
+  const [purchases, setPurchases] = useState<Purchase[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchPurchases = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/orders')
-        const data = await res.json()
-        setOrders(data?.data || [])
+        const res = await fetch('http://localhost:5000/api/beli');
+        const data = await res.json();
+        setPurchases(Array.isArray(data) ? data : data.data || []);
       } catch (err) {
-        console.error("Gagal mengambil data orders:", err)
-        setOrders([])
+        console.error(err);
+        setError('Gagal memuat riwayat pembelian.');
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
-    fetchOrders()
+    fetchPurchases()
   }, [])
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">📋 Daftar Pesanan</h2>
-      </div>
+    <section className="max-w-4xl mx-auto py-12 px-4">
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">Riwayat Pembelian</h2>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full text-sm text-left text-gray-700">
-          <thead className="bg-gray-100 text-xs text-gray-600 uppercase">
-            <tr>
-              <th className="px-4 py-3">Pelanggan</th>
-              <th className="px-4 py-3">Total</th>
-              <th className="px-4 py-3">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.length > 0 ? (
-              orders.map((order: any) => (
-                <tr key={order._id} className="border-t hover:bg-green-50 transition-colors">
-                  <td className="px-4 py-3 font-medium">{order.customer?.name || '-'}</td>
-                  <td className="px-4 py-3 text-green-700 font-semibold">
-                    Rp{order.totalPrice.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        order.status === 'completed'
-                          ? 'bg-green-100 text-green-700'
-                          : order.status === 'processing'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {order.status}
-                    </span>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={3} className="text-center px-4 py-6 text-gray-500">
-                  Tidak ada pesanan yang tersedia.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      {loading ? (
+        <p className="text-gray-500">Memuat data...</p>
+      ) : error ? (
+        <p className="text-red-600">{error}</p>
+      ) : purchases.length === 0 ? (
+        <p className="text-gray-500">Belum ada riwayat pembelian.</p>
+      ) : (
+        <div className="space-y-4">
+          {purchases.map((purchase) => (
+            <div
+              key={purchase._id}
+              className="border border-gray-200 rounded-xl p-4 shadow-sm bg-white"
+            >
+              <h3 className="text-lg font-semibold text-gray-800">
+                {purchase.product.name}
+              </h3>
+              <p className="text-sm text-gray-500">
+                Jumlah: {purchase.qty} kg &nbsp;|&nbsp; Harga per kg: Rp
+                {purchase.product.pricePerKg.toLocaleString('id-ID')}
+              </p>
+              <p className="text-sm text-gray-700 mt-1">
+                Total: <strong>Rp{purchase.totalPrice.toLocaleString('id-ID')}</strong>
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Tanggal: {new Date(purchase.purchasedAt).toLocaleString('id-ID')}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   )
 }
